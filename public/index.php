@@ -36,6 +36,7 @@ $router->add('account', ['controller' => 'User', 'action' => 'account', 'private
 $router->add('product', ['controller' => 'Product', 'action' => 'index', 'private' => true]);
 $router->add('contact', ['controller' => 'Product', 'action' => 'contact']);
 $router->add('product/{id:\d+}', ['controller' => 'Product', 'action' => 'show']);
+$router->add('api/products', ['controller' => 'Api', 'action' => 'products']);
 $router->add('{controller}/{action}');
 
 /*

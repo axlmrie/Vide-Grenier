@@ -1588,10 +1588,8 @@ pre code {
   overflow-y: scroll;
 }
 .container {
-  margin-right: auto;
-  margin-left: auto;
-  padding-left: 15px;
-  padding-right: 15px;
+  padding-left: 25px;
+  padding-right: 25px;
 }
 @media (min-width: 768px) {
   .container {
@@ -1605,7 +1603,6 @@ pre code {
 }
 @media (min-width: 1300px) {
   .container {
-    width: 1200px;
   }
 }
 .container-fluid {
@@ -2125,7 +2122,7 @@ pre code {
     width: 41.66666667%;
   }
   .col-lg-4 {
-    width: 33.33333333%;
+    width: 25vw;
   }
   .col-lg-3 {
     width: 25%;

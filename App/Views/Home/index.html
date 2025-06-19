@@ -59,29 +59,44 @@
 
 {% block javascript %}
     <script type="text/javascript">
-        const cookieBox = document.querySelector(".wrapper"),
-        acceptBtn = cookieBox.querySelector("button");
-        acceptBtn.onclick = ()=>{
-          //setting cookie for 1 month, after one month it'll be expired automatically
-          document.cookie = "CookieBy=CodingNepal; max-age="+60*60*24*30;
-          if(document.cookie){ //if cookie is set
-            cookieBox.classList.add("hide"); //hide cookie box
-          }else{ //if cookie not set then alert an error
-            alert("Cookie can't be set! Please unblock this site from the cookie setting of your browser.");
-          }
+        // Code pour les cookies (optionnel - peut être supprimé s'il n'y a pas de cookie box)
+        const cookieBox = document.querySelector(".wrapper");
+        if (cookieBox) {
+            const acceptBtn = cookieBox.querySelector("button");
+            if (acceptBtn) {
+                acceptBtn.onclick = ()=>{
+                  //setting cookie for 1 month, after one month it'll be expired automatically
+                  document.cookie = "CookieBy=CodingNepal; max-age="+60*60*24*30;
+                  if(document.cookie){ //if cookie is set
+                    cookieBox.classList.add("hide"); //hide cookie box
+                  }else{ //if cookie not set then alert an error
+                    alert("Cookie can't be set! Please unblock this site from the cookie setting of your browser.");
+                  }
+                }
+                let checkCookie = document.cookie.indexOf("CookieBy=CodingNepal"); //checking our cookie
+                //if cookie is set then hide the cookie box else show it
+                checkCookie != -1 ? cookieBox.classList.add("hide") : cookieBox.classList.remove("hide");
+            }
         }
-        let checkCookie = document.cookie.indexOf("CookieBy=CodingNepal"); //checking our cookie
-        //if cookie is set then hide the cookie box else show it
-        checkCookie != -1 ? cookieBox.classList.add("hide") : cookieBox.classList
 
         function getProductsAndRender(option = ''){
             $.ajax({
                 url: "/api/products" + '?sort=' + option,
+                method: 'GET',
+                dataType: 'json'
             }).done(function(result) {
+                console.log('Produits récupérés:', result);
                 $('#articlelist').empty();
-                for(let i = 0; i < result.length; i++){
-                    renderProduct(result[i])
+                if (result && result.length > 0) {
+                    for(let i = 0; i < result.length; i++){
+                        renderProduct(result[i]);
+                    }
+                } else {
+                    $('#articlelist').html('<div class="col-12"><p>Aucune annonce trouvée.</p></div>');
                 }
+            }).fail(function(xhr, status, error) {
+                console.error('Erreur lors du chargement des produits:', error);
+                $('#articlelist').html('<div class="col-12"><p>Erreur lors du chargement des annonces.</p></div>');
             });
         }
 
@@ -104,7 +119,8 @@
              .appendTo($('#articlelist'));
         }
 
-        $( document ).ready(function() {
+        $(document).ready(function() {
+            console.log('Document prêt, chargement des produits...');
             getProductsAndRender();
         });
     </script>
