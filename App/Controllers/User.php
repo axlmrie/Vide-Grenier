@@ -2,15 +2,12 @@
 
 namespace App\Controllers;
 
-use App\Config;
-use App\Model\UserRegister;
 use App\Models\Articles;
 use App\Utility\Hash;
-use App\Utility\Session;
 use \Core\View;
 use Exception;
-use http\Env\Request;
-use http\Exception\InvalidArgumentException;
+use App\Utility\Mail;
+use App\Models\User as UserModel;
 
 /**
  * User controller
@@ -22,40 +19,51 @@ class User extends \Core\Controller
      * Affiche la page de login
      */
     public function loginAction()
-    {
-        if(isset($_POST['submit'])){
-            $f = $_POST;
+{
+    if (isset($_POST['submit'])) {
+        $f = $_POST;
 
-            // TODO: Validation
-
-            $this->login($f);
-
+        if ($this->login($f)) {
             // Si login OK, redirige vers le compte
+            if (isset($f['remember'])) {
+                // Si la case "Se souvenir de moi" a été cochée, définir un cookie de session pour prolonger la durée de vie de la session
+                $remember_expir = time() + 60 * 60 * 24 * 30; // expire dans 30 jours
+                setcookie('remember_me', '1', $remember_expir);
+            }
             header('Location: /account');
+            exit();
+        } else {
+            // Sinon, affiche un message d'erreur et redirige vers la même page
+            $err_mes = "Veuillez réessayer. Le mot de passe et/ou l'email est incorrect";
+            View::renderTemplate('User/login.html', ['error message' => $err_mes]);
+            exit();
         }
-
-        View::renderTemplate('User/login.html');
     }
+
+    View::renderTemplate('User/login.html');
+}
 
     /**
      * Page de création de compte
      */
     public function registerAction()
     {
-        if(isset($_POST['submit'])){
+        if (isset($_POST['submit'])) {
             $f = $_POST;
 
-            if($f['password'] !== $f['password-check']){
-                // TODO: Gestion d'erreur côté utilisateur
+            if ($f['password'] !== $f['password-check']) {
+                $err[] = "Mots de passe non identique.";
             }
 
-            // validation
-
-            $this->register($f);
-            // TODO: Rappeler la fonction de login pour connecter l'utilisateur
+            if (empty($err)) {
+                $this->register($f);
+                $this->login($f);
+                header('Location:/account');
+                exit;
+            }
         }
 
-        View::renderTemplate('User/register.html');
+        View::renderTemplate('User/register.html', ['errors' => $err ?? []]);
     }
 
     /**
@@ -76,28 +84,37 @@ class User extends \Core\Controller
     private function register($data)
     {
         try {
-            // Generate a salt, which will be applied to the during the password
-            // hashing process.
+            // Vérifier si l'email est déjà présent dans la base de données
+            $user = \App\Models\User::getByLogin($data['email']);
+            if($user) {
+                throw new Exception('Email déjà pris.');
+            }
+    
+            // Générer un salt, qui sera appliqué lors du processus de hachage de mot de passe.
             $salt = Hash::generateSalt(32);
-
+    
             $userID = \App\Models\User::createUser([
                 "email" => $data['email'],
                 "username" => $data['username'],
                 "password" => Hash::generate($data['password'], $salt),
                 "salt" => $salt
             ]);
-
+    
             return $userID;
-
         } catch (Exception $ex) {
-            // TODO : Set flash if error : utiliser la fonction en dessous
-            /* Utility\Flash::danger($ex->getMessage());*/
+            // Gérer l'erreur et afficher un message à l'utilisateur.
+            $err[] = $ex->getMessage();
+            View::renderTemplate('User/register.html', ['errors' => $err ?? []]);
+            exit;
         }
     }
 
-    private function login($data){
+
+
+    private function login($data)
+    {
         try {
-            if(!isset($data['email'])){
+            if (!isset($data['email'])) {
                 throw new Exception('TODO');
             }
 
@@ -114,10 +131,10 @@ class User extends \Core\Controller
             $_SESSION['user'] = array(
                 'id' => $user['id'],
                 'username' => $user['username'],
+                'email' => $user['email'],
+                'is_admin' => $user['is_admin'],
             );
-
             return true;
-
         } catch (Exception $ex) {
             // TODO : Set flash if error
             /* Utility\Flash::danger($ex->getMessage());*/
@@ -132,7 +149,8 @@ class User extends \Core\Controller
      * @return boolean
      * @since 1.0.2
      */
-    public function logoutAction() {
+    public function logoutAction()
+    {
 
         /*
         if (isset($_COOKIE[$cookie])){
@@ -145,17 +163,58 @@ class User extends \Core\Controller
 
         if (ini_get("session.use_cookies")) {
             $params = session_get_cookie_params();
-            setcookie(session_name(), '', time() - 42000,
-                $params["path"], $params["domain"],
-                $params["secure"], $params["httponly"]
+            setcookie(
+                session_name(),
+                '',
+                time() - 42000,
+                $params["path"],
+                $params["domain"],
+                $params["secure"],
+                $params["httponly"]
             );
         }
 
         session_destroy();
+        setcookie('PHPSESSID', 'localhost', time() - 86400, '/');
 
-        header ("Location: /");
+        header("Location: /");
 
         return true;
     }
 
+    public function passwordForgottenAction()
+    {
+
+        if ($_SERVER['REQUEST_METHOD'] == "GET") {
+            View::renderTemplate('User/forgotten.html');
+        } else {
+            $password = UserModel::resetPassword($_POST["email"]);
+            Mail::sendMail(
+                $_POST["email"],
+                "Réinitialisation de votre mot de passe",
+                "Bonjour,\n\nVotre nouveau mot de passe est : $password\n\nVous pouvez le modifier à tout moment depuis votre compte utilisateur.\n\nCordialement,\nL'équipe du site Vide-Grenier."
+            );
+            header("location:/");
+        }
+    }
+
+    /**
+     * permet à l'utilisateur de paramétrer un nouveau mot de passe
+     */
+    public function resetPasswordAction()
+    {
+
+        if ($_SERVER['REQUEST_METHOD'] == "GET") {
+            View::renderTemplate('User/reset.html');
+        } else {
+            $passwd = UserModel::resetPasswordByUser($_POST["password"]);
+
+            header("location:/");
+        }
+    }
+
+    public function adminAction()
+    {
+        View::renderTemplate('User/admin.html');
+    }
 }

@@ -3,11 +3,11 @@
 {% block title %}Accueil{% endblock %}
 
 {% block body %}
-<div class="content-wrapper">
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-12">
 
+<div class="content-wrapper">
+    
+    <div class="container">
+            <div class="col-lg-12">
                 <div class="content-block head-div">
                     <div class="cb-header">
                         <div class="row">
@@ -28,12 +28,14 @@
                                         Filtrer par <span class="caret"></span>
                                     </button>
                                     <ul class="dropdown-menu">
-                                        <li><a onclick="getProductsAndRender('views')"><i
-                                                class="cv cvicon-cv-calender"></i>
-                                            Popularité</a></li>
-                                        <li><a onclick="getProductsAndRender('date')"><i
-                                                class="cv cvicon-cv-calender"></i>
-                                            Récent</a></li>
+                                        <li>
+                                            <a onclick="getProductsAndRender('views')">
+                                            <i class="cv cvicon-cv-relevant"></i> Popularité</a>
+                                        </li>
+                                        <li>
+                                            <a onclick="getProductsAndRender('date')">
+                                            <i class="cv cvicon-cv-calender"></i> Plus récent</a>
+                                        </li>
                                     </ul>
                                 </div>
                                 <div class="clearfix"></div>
@@ -57,6 +59,20 @@
 
 {% block javascript %}
     <script type="text/javascript">
+        const cookieBox = document.querySelector(".wrapper"),
+        acceptBtn = cookieBox.querySelector("button");
+        acceptBtn.onclick = ()=>{
+          //setting cookie for 1 month, after one month it'll be expired automatically
+          document.cookie = "CookieBy=CodingNepal; max-age="+60*60*24*30;
+          if(document.cookie){ //if cookie is set
+            cookieBox.classList.add("hide"); //hide cookie box
+          }else{ //if cookie not set then alert an error
+            alert("Cookie can't be set! Please unblock this site from the cookie setting of your browser.");
+          }
+        }
+        let checkCookie = document.cookie.indexOf("CookieBy=CodingNepal"); //checking our cookie
+        //if cookie is set then hide the cookie box else show it
+        checkCookie != -1 ? cookieBox.classList.add("hide") : cookieBox.classList
 
         function getProductsAndRender(option = ''){
             $.ajax({

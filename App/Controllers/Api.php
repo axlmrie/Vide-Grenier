@@ -33,11 +33,21 @@ class Api extends \Core\Controller
      *
      * @throws Exception
      */
-    public function CitiesAction(){
-
+    public static function CitiesAction()
+    {
         $cities = Cities::search($_GET['query']);
 
         header('Content-Type: application/json');
-        echo json_encode($cities);
     }
+
+    public function RemoveAction()
+    {
+        $id = $_GET['id'];
+
+        Articles::remove($id);
+
+        header('Content-Type: application/json');
+    }
+
+    
 }

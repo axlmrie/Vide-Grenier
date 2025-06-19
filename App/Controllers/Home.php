@@ -2,7 +2,6 @@
 
 namespace App\Controllers;
 
-use App\Models\Articles;
 use \Core\View;
 use Exception;
 

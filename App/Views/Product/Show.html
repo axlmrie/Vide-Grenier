@@ -38,8 +38,8 @@
                     </div>
                     <div class="u-area mt-small">
 
-                    <a name="submit" href="mailto:{{article.email}}" class="btn btn-primary u-btn">Contacter {{article
-                        .username}}</a>
+                    <a name="submit" href="./contact?product_id={{article.id}}&user_id={{article.user_id}}"
+                            class="btn btn-primary u-btn">Contacter {{article.username}}</a>
 
                     </div>
                 </div>
@@ -47,7 +47,7 @@
 
             <!-- right column -->
             <div class="col-lg-4 col-xs-12 col-sm-12 hidden-xs">
-                <p>Vous aimerez peut-être...</p>
+                <p>Vous aimerez peut-Ãªtre...</p>
                 <div class="list">
                     <div class="h-article row">
                         {% for suggestion in suggestions %}

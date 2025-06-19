@@ -4,12 +4,13 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "watch": "node-sass -w style -o public/style",
+    "watch": "sass --watch style:public/style",
+    "build": "sass style:public/style",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "sass": "^1.89.2"
+    "sass": "^1.77.0"
   }
 }
